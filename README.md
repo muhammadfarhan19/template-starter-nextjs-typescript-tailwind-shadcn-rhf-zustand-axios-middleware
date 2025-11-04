@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧩 Template Starter Next.js + TypeScript + Tailwind + shadcn + RHF + Zustand + Axios + Middleware
 
-## Getting Started
+Starter template modern untuk membangun aplikasi **Next.js** dengan arsitektur yang scalable dan maintainable.  
+Sudah dikonfigurasi dengan berbagai library populer untuk mempercepat pengembangan frontend modern.
 
-First, run the development server:
+---
+
+## 🚀 Tech Stack
+
+- **[Next.js 14+ (App Router)](https://nextjs.org/)** — Framework React dengan fitur server components dan route modern.
+- **[TypeScript](https://www.typescriptlang.org/)** — Superset JavaScript untuk kode yang lebih aman dan mudah dikelola.
+- **[Tailwind CSS](https://tailwindcss.com/)** — Utility-first CSS framework untuk styling yang efisien.
+- **[shadcn/ui](https://ui.shadcn.com/)** — Kumpulan komponen siap pakai berbasis Radix UI dan Tailwind CSS.
+- **[React Hook Form](https://react-hook-form.com/)** — Manajemen form yang ringan dan performa tinggi.
+- **[Zustand](https://zustand-demo.pmnd.rs/)** — State management yang sederhana dan minimal.
+- **[Axios](https://axios-http.com/)** — HTTP client untuk komunikasi API.
+- **Middleware** — Contoh implementasi middleware untuk autentikasi dan proteksi route.
+
+---
+
+
+---
+
+## ⚙️ Fitur Utama
+
+✅ Setup lengkap tanpa konfigurasi manual  
+✅ Routing berbasis App Router  
+✅ Proteksi halaman dengan middleware  
+✅ Manajemen state global via Zustand  
+✅ Form dengan validasi reaktif (RHF + Zod opsional)  
+✅ Komponen UI modern dengan shadcn  
+✅ Konfigurasi Axios siap pakai dengan interceptor  
+✅ Struktur folder yang rapi dan mudah dikembangkan  
+
+---
+
+## 🧰 Instalasi
+
+Clone repository ini:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/muhammadfarhan19/template-starter-nextjs-typescript-tailwind-shadcn-rhf-zustand-axios-middleware.git
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
