@@ -1,7 +1,6 @@
 // app/dashboard/layout.tsx
 
-import { BreadcrumbComponent } from "@/components/layouts/BreadcrumbComponent";
-import Header from "@/components/layouts/Header";
+import HeaderApp from "@/components/layouts/headers/HeaderApp";
 import SidebarApp from "@/components/layouts/SidebarApp";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -10,23 +9,13 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const userData = {
-    role: "fleet_manager" as const,
-    name: "Joni Talang",
-    position: "Fleet Manager",
-  };
-
   return (
     <SidebarProvider>
-      <SidebarApp
-        userRole={userData.role}
-        userName={userData.name}
-        userPosition={userData.position}
-      />
+      <SidebarApp />
 
       <main className="min-h-screen w-full">
-        <Header />
-        <BreadcrumbComponent />
+        <HeaderApp />
+
         <div>{children}</div>
       </main>
     </SidebarProvider>

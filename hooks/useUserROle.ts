@@ -1,7 +1,7 @@
-import { UserRole } from '@/types/sidebar';
+import { UserRole } from "@/types/common";
 
 // TODO: Integrate with your auth system
 export function useUserRole(): UserRole {
   // Temporary - Replace with actual auth logic
-  return 'fleet_manager';
+  return "OWNER";
 }

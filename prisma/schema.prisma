@@ -1,0 +1,447 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================
+// ENUMS
+// =============================
+enum UserRole {
+  OWNER
+  HR
+  FINANCE
+  ACADEMIC
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum PresenceType {
+  PRESENT
+  LATE
+  ABSENT
+  EXCUSED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  SICK
+  EXCUSED
+  ABSENT
+}
+
+enum FinanceType {
+  INCOME
+  EXPENSE
+}
+
+// =============================
+// CORE: USERS / ROLES / FILES
+// =============================
+model User {
+  id          String    @id @default(uuid())
+  username    String    @unique
+  email       String    @unique
+  phoneNumber String?   @map("phone_number")
+  password    String
+  role        UserRole
+  fullName    String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // relations
+  employee              Employee?
+  uploads               File[]             @relation("uploaderFiles")
+  studentPresences      StudentPresence[]  @relation("recordedByUser")
+  employeePresences     EmployeePresence[] @relation("recordedByHR")
+  posts                 Post[]
+  paymentsCaptured      Payment[]          @relation("capturedByUser")
+  tuitionInvoicesAuth   TuitionInvoice[]   @relation("invoiceCreatedBy")
+  financeRecordsCreated FinanceRecord[]    @relation("createdFinanceBy")
+  teacher               Teacher?
+  schedules             Schedule[]
+  transactions          Transaction[]
+  transactionsCreated   Transaction[]      @relation("transactionCreatedBy")
+
+  @@map("users")
+}
+
+// centralized files table
+model File {
+  id         String   @id @default(uuid())
+  url        String
+  key        String?
+  mime       String?
+  size       Int?
+  uploadedBy String?  @map("uploaded_by")
+  createdAt  DateTime @default(now())
+
+  uploader          User?              @relation("uploaderFiles", fields: [uploadedBy], references: [id], onDelete: SetNull)
+  // reverse relations (optional)
+  studentPresences  StudentPresence[]  @relation("photoFile_SP")
+  employeePresences EmployeePresence[] @relation("photoFile_EP")
+  payments          Payment[]          @relation("proofFiles")
+
+  @@map("files")
+}
+
+// =============================
+// EMPLOYEE (karyawan) & PRESENCE
+// =============================
+model Employee {
+  id          String    @id @default(uuid())
+  userId      String    @unique @map("user_id")
+  name        String
+  gender      Gender
+  address     String
+  phoneNumber String    @map("phone_number")
+  position    UserRole
+  joinDate    DateTime  @map("join_date")
+  salary      Float?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime?
+
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  presences      EmployeePresence[]
+  financeRecords FinanceRecord[]
+
+  @@map("employees")
+}
+
+model EmployeePresence {
+  id          String            @id @default(uuid())
+  employeeId  String            @map("employee_id")
+  recordedBy  String            @map("recorded_by")
+  presenceAt  DateTime          @map("presence_at") @db.Timestamptz(6)
+  dayOfWeek   Int?              @map("day_of_week") @db.SmallInt
+  type        PresenceType      @default(PRESENT)
+  status      AttendanceStatus?
+  note        String?
+  photoFileId String?           @map("photo_file_id")
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  deletedAt   DateTime?
+
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  recordedByUser User     @relation("recordedByHR", fields: [recordedBy], references: [id])
+  photoFile      File?    @relation("photoFile_EP", fields: [photoFileId], references: [id], onDelete: SetNull)
+
+  @@index([employeeId])
+  @@index([recordedBy])
+  @@index([presenceAt])
+  @@map("employee_presence")
+}
+
+// =============================
+// STUDENTS, ENROLLMENT, PRESENCE
+// =============================
+model Student {
+  id          String           @id @default(uuid())
+  name        String
+  gender      Gender
+  address     String
+  phoneNumber String?          @map("phone_number")
+  fatherName  String?          @map("father_name")
+  motherName  String?          @map("mother_name")
+  grade       String?
+  status      EnrollmentStatus @default(APPROVED)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
+
+  presences       StudentPresence[]
+  enrollments     Enrollment[]
+  invoices        TuitionInvoice[]
+  payments        Payment[]
+  studentPayments StudentPayment[]
+
+  @@map("students")
+}
+
+model StudentPresence {
+  id           String            @id @default(uuid())
+  studentId    String            @map("student_id")
+  recordedById String            @map("recorded_by")
+  presenceAt   DateTime          @map("presence_at") @db.Timestamptz(6)
+  dayOfWeek    Int?              @map("day_of_week") @db.SmallInt
+  type         PresenceType      @default(PRESENT)
+  status       AttendanceStatus?
+  note         String?
+  photoFileId  String?           @map("photo_file_id")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  deletedAt    DateTime?
+
+  student    Student @relation(fields: [studentId], references: [id])
+  recordedBy User    @relation("recordedByUser", fields: [recordedById], references: [id])
+  photoFile  File?   @relation("photoFile_SP", fields: [photoFileId], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, presenceAt])
+  @@index([studentId])
+  @@index([recordedById])
+  @@index([presenceAt])
+  @@map("student_presence")
+}
+
+// =============================
+// ACADEMIC: TEACHER / CLASS / SCHEDULE / CURRICULUM
+// =============================
+model Teacher {
+  id     String  @id @default(uuid())
+  userId String  @unique
+  bio    String?
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classes Class[]
+
+  @@map("teachers")
+}
+
+model Class {
+  id        String   @id @default(uuid())
+  name      String
+  grade     String?
+  teacherId String?
+  schedule  String?
+  createdAt DateTime @default(now())
+
+  teacher     Teacher?     @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  enrollments Enrollment[]
+  schedules   Schedule[]
+
+  @@map("classes")
+}
+
+model Enrollment {
+  id         String           @id @default(uuid())
+  studentId  String
+  classId    String
+  status     EnrollmentStatus @default(PENDING)
+  enrolledAt DateTime         @default(now())
+
+  student Student @relation(fields: [studentId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+
+  @@map("enrollments")
+}
+
+model Schedule {
+  id         String   @id @default(uuid())
+  classId    String
+  class      Class    @relation(fields: [classId], references: [id])
+  pengajarId String
+  pengajar   User     @relation(fields: [pengajarId], references: [id])
+  hari       String
+  jamMulai   String
+  jamSelesai String
+  type       String?  @default("mengaji")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("schedules")
+}
+
+// =============================
+// FINANCE: ACCOUNTS, TRANSACTIONS, LINES, RECORDS
+// =============================
+model Account {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  type      String
+  balance   Decimal  @default(0) @db.Decimal(18, 2)
+  createdAt DateTime @default(now())
+
+  lines TransactionLine[]
+
+  @@map("accounts")
+}
+
+model Transaction {
+  id        String          @id @default(uuid())
+  date      DateTime
+  type      TransactionType
+  total     Decimal         @db.Decimal(18, 2)
+  narration String?
+  reference String?
+  status    PaymentStatus   @default(PAID)
+  createdBy String?         @map("created_by")
+  createdAt DateTime        @default(now())
+  deletedAt DateTime?
+  userId    String?
+
+  lines          TransactionLine[]
+  createdByUser  User?             @relation("transactionCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  financeRecords FinanceRecord[]
+  payments       Payment[]
+  user           User?             @relation(fields: [userId], references: [id])
+
+  @@map("transactions")
+}
+
+model TransactionLine {
+  id            String  @id @default(uuid())
+  transactionId String  @map("transaction_id")
+  accountId     String  @map("account_id")
+  amount        Decimal @db.Decimal(18, 2)
+  isDebit       Boolean
+  description   String?
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  account     Account     @relation(fields: [accountId], references: [id])
+
+  @@map("transaction_lines")
+}
+
+model FinanceRecord {
+  id            String       @id @default(uuid())
+  employeeId    String?      @map("employee_id")
+  employee      Employee?    @relation(fields: [employeeId], references: [id])
+  createdById   String?      @map("created_by")
+  createdBy     User?        @relation("createdFinanceBy", fields: [createdById], references: [id], onDelete: SetNull)
+  type          FinanceType
+  amount        Decimal      @db.Decimal(18, 2)
+  description   String?
+  date          DateTime     @default(now())
+  transactionId String?      @map("transaction_id")
+  transaction   Transaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  deletedAt     DateTime?
+
+  @@map("finance_records")
+}
+
+// =============================
+// TUITION & PAYMENTS
+// =============================
+model TuitionPlan {
+  id        String   @id @default(uuid())
+  name      String
+  amount    Decimal  @db.Decimal(18, 2)
+  period    String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  invoices TuitionInvoice[]
+
+  @@map("tuition_plans")
+}
+
+model TuitionInvoice {
+  id        String        @id @default(uuid())
+  studentId String
+  planId    String?
+  amount    Decimal       @db.Decimal(18, 2)
+  dueDate   DateTime
+  status    PaymentStatus @default(PENDING)
+  paidAt    DateTime?
+  paymentId String?
+  createdBy String?       @map("created_by")
+  createdAt DateTime      @default(now())
+
+  student       Student      @relation(fields: [studentId], references: [id])
+  plan          TuitionPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  payment       Payment?     @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  createdByUser User?        @relation("invoiceCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@index([studentId, status])
+  @@map("tuition_invoices")
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  invoiceId     String?       @map("invoice_id")
+  studentId     String?       @map("student_id")
+  amount        Decimal       @db.Decimal(18, 2)
+  method        String
+  proofFileId   String?       @map("proof_file_id")
+  status        PaymentStatus @default(PENDING)
+  capturedBy    String?       @map("captured_by")
+  transactionId String?       @map("transaction_id")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+
+  invoices       TuitionInvoice[]
+  student        Student?         @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  proofFile      File?            @relation("proofFiles", fields: [proofFileId], references: [id], onDelete: SetNull)
+  capturedByUser User?            @relation("capturedByUser", fields: [capturedBy], references: [id], onDelete: SetNull)
+  transaction    Transaction?     @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, status])
+  @@map("payments")
+}
+
+model StudentPayment {
+  id          String   @id @default(uuid())
+  studentId   String
+  amount      Decimal  @db.Decimal(18, 2)
+  description String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("student_payments")
+}
+
+// =============================
+// BLOG & SETTINGS
+// =============================
+model Post {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  title       String
+  content     String
+  excerpt     String?
+  status      String    @default("DRAFT")
+  authorId    String?
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@map("posts")
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  desc      String?
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}

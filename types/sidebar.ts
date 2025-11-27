@@ -1,8 +1,7 @@
 // types/sidebar.ts
 
-import { LucideIcon } from 'lucide-react';
-
-export type UserRole = 'admin' | 'fleet_manager' | 'driver' | 'viewer';
+import { LucideIcon } from "lucide-react";
+import { UserRole } from "./common";
 
 export interface SubMenuItem {
   id: string;

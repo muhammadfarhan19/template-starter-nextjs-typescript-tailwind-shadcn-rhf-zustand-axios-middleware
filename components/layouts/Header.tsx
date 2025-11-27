@@ -3,8 +3,6 @@
 import { useState } from "react";
 import dayjs from "dayjs";
 import {
-  Bell,
-  Mail,
   User,
   Wifi,
   ChevronDown,
@@ -18,7 +16,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { SidebarTrigger } from "../ui/sidebar";
 
 export default function Header() {
@@ -73,56 +70,6 @@ export default function Header() {
           <span>Online</span>
           <span>• {dayjs().format("HH:mm")}</span>
         </div>
-
-        {/* Messages */}
-        <Popover
-          open={openPopover === "messages"}
-          onOpenChange={() => togglePopover("messages")}
-        >
-          <PopoverTrigger asChild>
-            <button className="relative p-2 cursor-pointer">
-              <Mail className="w-5 h-5 text-gray-700" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-72">
-            <p className="font-medium text-gray-700 mb-2">No new messages</p>
-            <p className="text-sm text-gray-500">You&apos;re all caught up!</p>
-          </PopoverContent>
-        </Popover>
-
-        {/* Notifications */}
-        <Popover
-          open={openPopover === "notifications"}
-          onOpenChange={() => togglePopover("notifications")}
-        >
-          <PopoverTrigger asChild>
-            <button className="relative p-2 cursor-pointer">
-              <Bell className="w-5 h-5 text-gray-700" />
-              <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full px-1.5">
-                3
-              </span>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-80">
-            <div className="space-y-2 text-sm">
-              <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1 bg-yellow-400 rounded-full" />
-                <p>Vehicle B 9254 HT fuel level low</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1 bg-blue-400 rounded-full" />
-                <p>Route update available for Semarang</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1 bg-green-400 rounded-full" />
-                <p>Maintenance completed for B 9254 HO</p>
-              </div>
-              <button className="mt-3 w-full text-blue-600 text-xs font-semibold hover:underline">
-                View All Notifications
-              </button>
-            </div>
-          </PopoverContent>
-        </Popover>
 
         {/* Account */}
         <Popover

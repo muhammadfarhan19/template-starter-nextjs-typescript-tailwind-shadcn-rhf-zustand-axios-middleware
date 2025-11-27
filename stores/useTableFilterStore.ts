@@ -1,23 +1,75 @@
-// store/useTableStore.ts
 import { create } from "zustand";
 
+// ====================
+// 🔹 Base Store
+// ====================
 interface TableState {
-  search: string;
-  filters: Record<string, string>;
-  page: number;
-  setSearch: (value: string) => void;
-  setFilter: (key: string, value: string) => void;
-  resetFilters: () => void;
-  setPage: (value: number) => void;
+  tableStates: Record<
+    string,
+    {
+      search: string;
+      filters: Record<string, string>;
+      page: number;
+    }
+  >;
+  setSearch: (storeKey: string, value: string) => void;
+  setFilter: (storeKey: string, key: string, value: string) => void;
+  resetFilters: (storeKey: string) => void;
+  setPage: (storeKey: string, value: number) => void;
 }
 
 export const useTableFilterStore = create<TableState>((set) => ({
-  search: "",
-  filters: {},
-  page: 1,
-  setSearch: (value) => set({ search: value }),
-  setFilter: (key, value) =>
-    set((state) => ({ filters: { ...state.filters, [key]: value } })),
-  resetFilters: () => set({ search: "", filters: {}, page: 1 }),
-  setPage: (value) => set({ page: value }),
+  tableStates: {},
+  setSearch: (storeKey, value) =>
+    set((state) => ({
+      tableStates: {
+        ...state.tableStates,
+        [storeKey]: {
+          ...(state.tableStates[storeKey] || {
+            search: "",
+            filters: {},
+            page: 1,
+          }),
+          search: value,
+        },
+      },
+    })),
+  setFilter: (storeKey, key, value) =>
+    set((state) => ({
+      tableStates: {
+        ...state.tableStates,
+        [storeKey]: {
+          ...(state.tableStates[storeKey] || {
+            search: "",
+            filters: {},
+            page: 1,
+          }),
+          filters: {
+            ...(state.tableStates[storeKey]?.filters || {}),
+            [key]: value,
+          },
+        },
+      },
+    })),
+  resetFilters: (storeKey) =>
+    set((state) => ({
+      tableStates: {
+        ...state.tableStates,
+        [storeKey]: { search: "", filters: {}, page: 1 },
+      },
+    })),
+  setPage: (storeKey, value) =>
+    set((state) => ({
+      tableStates: {
+        ...state.tableStates,
+        [storeKey]: {
+          ...(state.tableStates[storeKey] || {
+            search: "",
+            filters: {},
+            page: 1,
+          }),
+          page: value,
+        },
+      },
+    })),
 }));
